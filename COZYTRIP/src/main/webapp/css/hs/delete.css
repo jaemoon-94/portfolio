@@ -1,0 +1,119 @@
+/* 회원탈퇴 페이지 스타일 */
+.content-main {
+    width: 80%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.content-main h2 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+/* 폼 스타일 */
+#delete_form {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#delete_form ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#delete_form li {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+#delete_form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+#delete_form input[type="text"],
+#delete_form input[type="email"],
+#delete_form input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+#delete_form input[type="text"]:focus,
+#delete_form input[type="email"]:focus,
+#delete_form input[type="password"]:focus {
+    border-color: #FF6B6B;
+    outline: none;
+}
+
+/* 비밀번호 확인 메시지 스타일 */
+#message_cpasswd {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 14px;
+    color: #4CAF50;
+}
+
+/* 버튼 스타일 */
+.align-center {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.align-center input[type="submit"],
+.align-center input[type="button"] {
+    background-color: #FF6B6B;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.align-center input[type="submit"] {
+    background-color: #FF5252; /* 회원탈퇴 버튼은 약간 더 강조된 색상 */
+}
+
+.align-center input[type="submit"]:hover {
+    background-color: #FF1744; /* 더 진한 빨간색으로 변경 */
+}
+
+.align-center input[type="button"]:hover {
+    background-color: #FF5252;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .content-main {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    #delete_form {
+        max-width: 100%;
+    }
+    
+    #message_cpasswd {
+        display: block;
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}

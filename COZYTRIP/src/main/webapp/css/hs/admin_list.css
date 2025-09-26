@@ -1,0 +1,239 @@
+/* 사용자 관리 페이지 스타일 */
+.admin-user-container {
+    max-width: 1300px; /* 전체 컨테이너 넓이 증가 */
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.admin-user-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 30px 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.admin-user-list {
+    width: 100%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    table-layout: fixed; /* 테이블 레이아웃 고정 */
+}
+
+.admin-user-list th, .admin-user-list td {
+    padding: 12px 8px; /* 패딩 조정 */
+    border: 1px solid #e0e0e0;
+    text-align: center;
+    vertical-align: middle; /* 수직 정렬 중앙 */
+    word-break: break-word; /* 긴 텍스트 처리 */
+}
+
+.admin-user-list th {
+    background-color: #f8f8f8;
+    color: #555;
+    font-weight: bold;
+}
+
+.admin-user-list tr:hover {
+    background-color: #f9f9f9;
+}
+
+.user-search-form {
+    margin: 20px auto;
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.user-search-form select, .user-search-form input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.user-search-form input {
+    min-width: 200px;
+}
+
+.user-search-form button {
+    padding: 8px 15px;
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.user-search-form button:hover {
+    background-color: #ff5252;
+}
+
+.auth-select {
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100px; /* 너비 고정 */
+    display: inline-block; /* 인라인 블록으로 설정 */
+    margin-right: 5px; /* 버튼과의 간격 */
+}
+
+/* 버튼 스타일 및 정렬 개선 */
+.update-auth-btn, .delete-user-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+    display: inline-block; /* 인라인 블록으로 설정 */
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+}
+
+.update-auth-btn {
+    background-color: #ff6b6b;
+    color: white;
+}
+
+.update-auth-btn:hover {
+    background-color: #ff5252;
+}
+
+.delete-user-btn {
+    background-color: #e74c3c;
+    color: white;
+    width: 100%; /* 부모 요소 너비에 맞춤 */
+    max-width: 80px; /* 최대 너비 설정 */
+}
+
+.delete-user-btn:hover {
+    background-color: #c0392b;
+}
+
+.user-paging {
+    margin: 30px auto;
+    text-align: center;
+    user-select: none;
+}
+
+.user-paging a {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 0 3px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: #333;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.user-paging a:hover {
+    background-color: #f5f5f5;
+}
+
+.user-current-page {
+    background-color: #ff6b6b !important;
+    color: white !important;
+    border: 1px solid #ff6b6b !important;
+}
+
+/* 테이블 셀 너비 조정 */
+.col-num { width: 7%; }
+.col-id { width: 10%; }
+.col-name { width: 8%; }
+.col-email { width: 15%; }
+.col-phone { width: 12%; }
+.col-date { width: 10%; }
+.col-auth { width: 20%; } /* 권한 컬럼 너비 증가 */
+.col-manage { width: 8%; }
+
+/* 권한 변경 폼 수평 정렬 */
+td form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+/* 구분선 */
+.user-separator {
+    width: 100%;
+    height: 1px;
+    background-color: #e0e0e0;
+    margin: 20px 0 40px 0;
+}
+
+/* 빈 리스트 메시지 스타일 */
+.empty-list-message {
+    text-align: center;
+    margin: 50px 0;
+    padding: 30px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    color: #777;
+}
+
+/* 반응형 디자인 */
+@media screen and (max-width: 1200px) {
+    .admin-user-container {
+        width: 95%;
+    }
+    
+    .col-auth {
+        width: 30%; /* 작은 화면에서 권한 컬럼 비율 증가 */
+    }
+}
+
+@media screen and (max-width: 992px) {
+    .admin-user-container {
+        width: 98%;
+        padding: 15px;
+    }
+
+    .admin-user-list {
+        font-size: 14px;
+    }
+
+    .user-search-form {
+        flex-wrap: wrap;
+    }
+    
+    /* 테이블 레이아웃 조정 */
+    .col-num, .col-date { width: auto; }
+}
+
+@media screen and (max-width: 768px) {
+    .admin-user-list {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        table-layout: auto; /* 모바일에서는 자동 레이아웃 */
+    }
+
+    .user-search-form input {
+        min-width: 150px;
+    }
+    
+    td form {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .auth-select {
+        margin-bottom: 5px;
+        margin-right: 0;
+        width: 100%;
+    }
+    
+    .update-auth-btn {
+        width: 100%;
+    }
+}

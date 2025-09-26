@@ -1,0 +1,138 @@
+/* wrapper 스타일 - 전체 페이지 레이아웃 구조 */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 메인 컨텐츠가 푸터를 밀어내도록 설정 */
+main {
+  flex: 1 0 auto;
+}
+
+/* 전체 페이지 배경 및 스타일 */
+.page-background {
+  background-color: #f8f9fa;
+  padding: 80px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0; /* 푸터와의 간격 제거 */
+  width: 100%;
+}
+
+/* 로그인 컨테이너 스타일 */
+.login-container {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 로그인 타이틀 스타일 */
+.login-title {
+  text-align: left;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 35px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+/* 폼 필드 스타일 */
+.form-field {
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.form-field label {
+  display: block;
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.form-field input[type="text"],
+.form-field input[type="password"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+  height: 45px;
+}
+
+.form-field input[type="text"]:focus,
+.form-field input[type="password"]:focus {
+  border-color: #ff6b6b;
+  outline: none;
+}
+
+/* 버튼 그룹 스타일 */
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+/* 버튼 공통 스타일 */
+.btn {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  height: 45px;
+}
+
+/* 주요 버튼 스타일 (로그인) */
+.btn-primary {
+  background-color: #ff6b6b;
+  color: #fff;
+  flex: 1;
+}
+
+.btn-primary:hover {
+  background-color: #ff5252;
+}
+
+/* 보조 버튼 스타일 (회원가입, 홈으로) */
+.btn-secondary {
+  background-color: #f1f1f1;
+  color: #555;
+}
+
+.btn-secondary:hover {
+  background-color: #e1e1e1;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 30px;
+    max-width: 90%;
+  }
+  
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-container {
+    padding: 25px;
+    max-width: 95%;
+  }
+}

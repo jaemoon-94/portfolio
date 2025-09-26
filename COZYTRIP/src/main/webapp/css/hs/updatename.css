@@ -1,0 +1,94 @@
+
+/* 연락처 수정 페이지 스타일 */
+.content-main {
+    width: 80%;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.content-main h2 {
+    font-size: 24px;
+    color: #333;
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+/* 폼 스타일 */
+#modify_form {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+#modify_form ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#modify_form li {
+    margin-bottom: 20px;
+}
+
+#modify_form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-check {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.input-check:focus {
+    border-color: #FF6B6B;
+    outline: none;
+}
+
+/* 버튼 스타일 */
+.align-center {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.align-center input[type="submit"],
+.align-center input[type="button"] {
+    background-color: #FF6B6B;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+.align-center input[type="submit"]:hover,
+.align-center input[type="button"]:hover {
+    background-color: #FF5252;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .content-main {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    #modify_form {
+        max-width: 100%;
+    }
+}

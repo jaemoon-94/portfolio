@@ -1,0 +1,212 @@
+/* Main Content Styling */
+.content-main {
+    max-width: 1400px; /* 1200px에서 1400px으로 증가 */
+    margin: 0 auto;
+    padding: 40px 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.content-main h2 {
+    font-size: 28px; /* 24px에서 28px로 증가 */
+    color: #333;
+    margin-bottom: 30px; /* 20px에서 30px로 증가 */
+    border-bottom: 2px solid #ff6b6b;
+    padding-bottom: 15px;
+    text-align: center;
+}
+
+/* Member Info Container */
+.mypage-div {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 30px; /* 25px에서 30px로 증가 */
+    margin-bottom: 30px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 회원정보 컨테이너 가로형 레이아웃 */
+.profile-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    max-width: 1300px; /* 최대 넓이 설정 */
+    margin: 0 auto; /* 중앙 정렬 */
+}
+
+/* 버튼 스타일링 복원 */
+input[type="button"] {
+    background-color: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: 10px;
+}
+
+input[type="button"]:hover {
+    background-color: #ff5252;
+}
+
+#photo_choice {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+#photo_choice input[type="file"] {
+    margin-bottom: 10px;
+}
+
+#photo_submit, #photo_reset {
+    margin: 0 5px;
+}
+
+#photo_submit {
+    background-color: #ff6b6b;
+}
+
+#photo_reset {
+    background-color: #aaa;
+}
+
+#photo_submit:hover {
+    background-color: #ff5252;
+}
+
+#photo_reset:hover {
+    background-color: #999;
+}
+
+/* 프로필 영역 - 왼쪽에 배치 */
+.profile-section {
+    flex: 0 0 350px; /* 300px에서 350px로 증가 */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 30px; /* 25px에서 30px로 증가 */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 회원정보 영역 - 오른쪽에 배치 */
+.info-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* 20px에서 25px로 증가 */
+    min-width: 600px; /* 최소 넓이 설정 */
+}
+
+/* 정보 섹션 스타일 */
+.info-section {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 25px; /* 20px에서 25px로 증가 */
+    margin-bottom: 0;
+}
+
+/* 프로필 사진 크기 증가 */
+.my-photo {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f5f5f5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 180px; /* 150px에서 180px로 증가 */
+    height: 180px; /* 150px에서 180px로 증가 */
+    margin: 0 auto;
+    display: block;
+}
+
+/* 정보 영역 */
+.info-area {
+    padding: 18px; /* 15px에서 18px로 증가 */
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-top: 15px;
+}
+
+/* 섹션 제목 스타일 */
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.section-title h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #ff6b6b;
+}
+
+/* 사용자 정보 텍스트 크기 증가 */
+.mypage-div ul li {
+    padding: 12px 0; /* 10px에서 12px로 증가 */
+    border-bottom: 1px dashed #eee;
+    color: #555;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 17px; /* 텍스트 크기 증가 */
+}
+
+/* 미디어 쿼리 - 반응형 디자인 */
+@media (max-width: 1200px) {
+    .profile-container {
+        max-width: 100%;
+    }
+    
+    .info-container {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 992px) {
+    .profile-section {
+        flex: 0 0 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column;
+    }
+    
+    .profile-section {
+        flex: 1;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .info-container {
+        width: 100%;
+    }
+    
+    /* 모바일에서의 버튼 스타일 */
+    input[type="button"] {
+        margin-left: 5px;
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+    
+    .section-title {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .section-title input[type="button"] {
+        margin-top: 10px;
+        margin-left: 0;
+    }
+}

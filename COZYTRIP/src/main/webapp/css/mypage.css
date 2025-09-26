@@ -1,0 +1,101 @@
+@charset "UTF-8";
+
+/* 마이페이지 스타일 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+/* 마이페이지 헤더 */
+.mypage-header {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.mypage-header h1 {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.mypage-header h2 {
+    font-size: 24px;
+    color: #333;
+}
+
+/* 마이페이지 메뉴 그리드 */
+.mypage-menu-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 30px;
+    margin-bottom: 50px;
+}
+
+.menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.menu-icon {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    transition: all 0.3s ease;
+}
+
+.menu-icon img {
+    width: 130px;
+    height: 130px;
+}
+
+.menu-link {
+    position: relative;
+    display: inline-block;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    padding: 10px 20px;
+    background-color: #ff9999;
+    border-radius: 25px;
+    width: 200px;
+    transition: all 0.3s ease;
+}
+
+
+
+.menu-item:hover .menu-icon {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.menu-item:hover .menu-link {
+    background-color: #ff7777;
+}
+
+/* 구분선 */
+.mypage-divider {
+    border-bottom: 1px solid #ddd;
+    margin: 20px 0;
+}
+
+/* 반응형 설정 */
+@media (max-width: 768px) {
+    .mypage-menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .mypage-menu-grid {
+        grid-template-columns: 1fr;
+    }
+}
