@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout_basic}">
+<head>
+    <title>채팅방</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <link rel="stylesheet" th:href="@{/assets/css/jm/chatView.css}">
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="chat-container">
+            <div class="chat-view-wrapper">
+                <div class="chat-header">
+                    <div class="chat-header-title">
+                        <span th:text="${room.room_name}">채팅방</span>
+                    </div>
+                    <div class="chat-header-actions">
+                        <button class="chat-header-btn" title="멤버 목록" onclick="toggleMemberList()"><span>👥</span></button>
+                    </div>
+                </div>
+                
+                <div class="chat-member-list" id="memberList" style="display: none;">
+                    <div class="member-list-header">
+                        <h4>멤버 목록</h4>
+                        <button onclick="toggleMemberList()" class="close-btn">×</button>
+                    </div>
+                    <div class="member-list-content">
+                        <div th:each="member : ${memberList}" class="member-item">
+                            <span class="member-name" th:text="${member.user_name}">사용자</span>
+                            <span class="member-role" th:text="${member.role}">역할</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div th:each="message : ${messageList}" 
+                         th:class="'chat-message-row ' + (${message.sender_num} == ${currentUserNum} ? 'me' : '')">
+                        <div class="chat-bubble" th:text="${message.content}">메시지 내용</div>
+                        <div class="chat-message-meta" th:text="${message.sent_at}">시간</div>
+                    </div>
+                </div>
+                
+                <form class="chat-input-area" id="chatSendForm" autocomplete="off" onsubmit="event.preventDefault(); sendMessage();">
+                    <input type="hidden" name="room_num" th:value="${room.room_num}">
+                    <input type="text" class="chat-input" name="message" id="messageInput" 
+                           placeholder="메시지를 입력하세요..." autocomplete="off" required>
+                    <button type="submit" class="chat-send-btn">전송</button>
+                </form>
+            </div>
+        </div>
+        
+        <script th:inline="javascript">
+            // Thymeleaf 변수를 JavaScript 변수로 변환
+            const roomNum = '[[${room.room_num}]]';
+            const userNum = '[[${currentUserNum}]]';
+            
+            // CSRF 토큰 설정
+            const token = document.querySelector("meta[name='_csrf']").getAttribute("content");
+            const header = document.querySelector("meta[name='_csrf_header']").getAttribute("content");
+            
+            // 페이지 로드 시 채팅 초기화
+            document.addEventListener('DOMContentLoaded', function() {
+                initChat(roomNum, userNum);
+            });
+            
+            // 멤버 목록 토글
+            function toggleMemberList() {
+                const memberList = document.getElementById('memberList');
+                memberList.style.display = memberList.style.display === 'none' ? 'block' : 'none';
+            }
+            
+            // 엔터 키로 메시지 전송
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        </script>
+        <script th:src="@{/assets/js/chat.js}"></script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.spring.sales.dao.SalesOrderMapper">
+
+    <!-- sales_order CRUD -->
+    <insert id="insertSalesOrder" parameterType="kr.spring.sales.vo.SalesOrderVO">
+        <selectKey keyProperty="sales_order_num" resultType="long" order="BEFORE">
+            SELECT sales_order_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO sales_order (sales_order_num, customer_num, order_date, total_price, emp_num)
+        VALUES (#{sales_order_num}, #{customer_num}, sysdate, #{total_price}, #{emp_num})
+    </insert>
+
+    <select id="selectSalesOrder" parameterType="long" resultType="kr.spring.sales.vo.SalesOrderVO">
+        SELECT so.sales_order_num,
+               so.customer_num,
+               NVL(c.client_name, '미지정') as client_name,
+               so.order_date,
+               so.total_price,
+               so.emp_num,
+               d.user_name as emp_name
+        FROM sales_order so
+        LEFT JOIN client c ON so.customer_num = c.client_num
+        LEFT JOIN euser u ON so.emp_num = u.user_num
+        LEFT JOIN euser_detail d ON u.user_num = d.user_num
+        WHERE so.sales_order_num = #{sales_order_num}
+    </select>
+
+    <select id="selectSalesOrderList" resultType="kr.spring.sales.vo.SalesOrderVO">
+        SELECT 
+            so.sales_order_num, 
+            so.customer_num, 
+            NVL(c.client_name, '미지정') as client_name, 
+            so.order_date, 
+            so.total_price, 
+            so.emp_num,
+            d.user_name as emp_name
+        FROM sales_order so
+        LEFT JOIN client c ON so.customer_num = c.client_num
+        LEFT JOIN euser u ON so.emp_num = u.user_num
+        LEFT JOIN euser_detail d ON u.user_num = d.user_num
+        ORDER BY so.sales_order_num DESC
+    </select>
+
+    <select id="selectSalesOrderListByMap" parameterType="map" resultType="kr.spring.sales.vo.SalesOrderVO">
+        SELECT 
+            so.sales_order_num, 
+            so.customer_num, 
+            NVL(c.client_name, '미지정') as client_name, 
+            so.order_date, 
+            so.total_price, 
+            so.emp_num,
+            d.user_name as emp_name
+        FROM sales_order so
+        LEFT JOIN client c ON so.customer_num = c.client_num
+        LEFT JOIN euser u ON so.emp_num = u.user_num
+        LEFT JOIN euser_detail d ON u.user_num = d.user_num
+        ORDER BY so.sales_order_num DESC
+    </select>
+
+    <update id="updateSalesOrder" parameterType="kr.spring.sales.vo.SalesOrderVO">
+        UPDATE sales_order
+        SET customer_num = #{customer_num},
+            order_date = #{order_date},
+            total_price = #{total_price},
+            emp_num = #{emp_num}
+        WHERE sales_order_num = #{sales_order_num}
+    </update>
+
+    <delete id="deleteSalesOrder" parameterType="long">
+        DELETE FROM sales_order WHERE sales_order_num = #{sales_order_num}
+    </delete>
+
+    <!-- sales_order_detail CRUD -->
+    <insert id="insertSalesOrderDetail" parameterType="kr.spring.sales.vo.SalesOrderDetailVO">
+        INSERT INTO sales_order_detail (sales_order_num, product_num, quantity, unit_price)
+        VALUES (#{sales_order_num}, #{product_num}, #{quantity}, #{unit_price})
+    </insert>
+
+    <select id="selectSalesOrderDetailList" parameterType="long" resultType="kr.spring.sales.vo.SalesOrderDetailVO">
+        SELECT d.sales_order_num, d.product_num, p.product_name, d.quantity, d.unit_price
+        FROM sales_order_detail d
+        JOIN product p ON d.product_num = p.product_num
+        WHERE d.sales_order_num = #{sales_order_num}
+    </select>
+
+    <update id="updateSalesOrderDetail" parameterType="kr.spring.sales.vo.SalesOrderDetailVO">
+        UPDATE sales_order_detail
+        SET quantity = #{quantity},
+            unit_price = #{unit_price}
+        WHERE sales_order_num = #{sales_order_num} AND product_num = #{product_num}
+    </update>
+
+    <delete id="deleteSalesOrderDetail" parameterType="long">
+        DELETE FROM sales_order_detail WHERE sales_order_num = #{sales_order_num}
+    </delete>
+
+    <select id="getMonthlySalesStats" resultType="java.util.Map">
+        SELECT
+            TO_CHAR(order_date, 'YYYY-MM') AS "month",
+            SUM(total_price) AS "total"
+        FROM sales_order
+        WHERE EXTRACT(YEAR FROM order_date) = EXTRACT(YEAR FROM SYSDATE)
+        GROUP BY TO_CHAR(order_date, 'YYYY-MM')
+        ORDER BY "month" ASC
+    </select>
+
+</mapper> 

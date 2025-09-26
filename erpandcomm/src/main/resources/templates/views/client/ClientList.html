@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/layout_basic}">
+<head>
+    <meta charset="UTF-8">
+    <title>거래처 목록</title>
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}">
+    <link rel="stylesheet" th:href="@{/assets/css/sh.css}">
+    <style>
+    .page-main .page-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 60px !important;
+      padding: 40px 40px 30px 40px !important;
+      border-bottom: 2px solid #e0e0e0 !important;
+    }
+    .page-main .page-title {
+      font-size: 1.5rem !important;
+      font-weight: bold !important;
+      color: #3b6fd6 !important;
+      margin: 0 !important;
+    }
+    .page-main .total-count {
+      font-size: 1rem !important;
+      color: #666 !important;
+      background-color: #fff !important;
+      padding: 8px 16px !important;
+      border-radius: 20px !important;
+      box-shadow: 0 2px 6px rgba(90,150,255,0.08) !important;
+    }
+    .page-main .total-count strong {
+      color: #3b6fd6 !important;
+      font-weight: bold !important;
+    }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+    <div class="dashboard-wrapper">
+        <th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+        <main class="main-content">
+            <div class="page-header">
+                <h2 class="page-title">거래처 관리</h2>
+                <div>
+                    <span class="total-count">총 <strong th:text="${list.size()}">0</strong>개 거래처</span>
+                </div>
+            </div>
+            
+            <div class="card" style="width: 530px; padding: 0; margin: 0 auto 18px auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);">
+              <div style="width:530px; min-height:132px; margin:0 auto; text-align:center;">
+                <canvas id="clientPieChart" style="display: inline-block; width: 260px; height: 260px; box-sizing: border-box;" width="260" height="260"></canvas>
+              </div>
+            </div>
+
+                <div class="list-header">
+                    <h2 class="page-title">거래처 목록</h2>
+                    <a th:href="@{/client/form}" class="btn-order-create"><img src="/assets/images/write.png" alt="등록" width="20" height="20" style="vertical-align:middle; margin-right:7px;">거래처 등록</a>
+                </div>
+            <div class="sh-box" style="display:flex; gap:56px; width:100%; min-width:0; margin:0 auto 32px auto; margin-left:32px;">
+              <!-- 고객 목록, 공급업체 목록 테이블 flex row -->
+                    <!-- 고객 목록 -->
+                <div class="table-container" style="width: 600px; margin-right: 20px; ">
+                    <h3 style="margin-bottom: 15px;margin-top: 15px;margin-left: 15px; color: #3b6fd6; font-size: 1.1rem;">고객 목록</h3>
+                    <form id="clientListForm" method="post" th:action="@{/client/deleteSelected}">
+                      <table class="custom-table" style="width:85%">
+                                                    <thead>
+                            <tr>
+                            <th style="width:5%"><input type="checkbox" id="allChk" onclick="toggleAll(this)"></th>
+                            <th style="width:9%">거래처명</th>
+                            <th style="width:9%">담당자</th>
+                            <th style="width:10%">연락처</th>
+                            <th style="width:8%">상세보기</th>
+                            <th style="width:12%">수정/삭제</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                          <th:block th:each="client, stat : ${list}">
+                            <tr th:if="${client.client_type == 1 or client.client_type == '1'}">
+                              <td><input type="checkbox" name="clientChk" th:value="${client.client_num}"></td>
+                                <td th:text="${client.client_name}"></td>
+                              <td th:text="${client.contact_person}"></td>
+                                <td th:text="${client.phone}"></td>
+                              <td>
+                                <button type="button" class="btn-detail" th:attr="data-idx=${stat.index}" onclick="toggleDetail(this)">상세보기</button>
+                              </td>
+                              <td style="padding:2px 4px;">
+                                <a th:href="@{/client/form(client_num=${client.client_num})}" class="btn-detail" style="background:#2ecc71; margin-right:2px;">수정</a>
+                                <a th:href="@{/client/delete(client_num=${client.client_num})}" class="btn-detail" style="background:#e74c3c; margin-left:2px;" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+                              </td>
+                            </tr>
+                            <tr th:if="${client.client_type == 1 or client.client_type == '1'}" th:id="'detail-row-' + ${stat.index}" class="detail-row" style="display:none;">
+                              <td colspan="6">
+                                <b class="detail-label">주소</b> <span th:text="${client.address1} + ' ' + ${client.address2}"></span><br>
+                                <b class="detail-label">연락처</b> <span th:text="${client.phone}"></span>
+                              </td>
+                            </tr>
+                          </th:block>
+                        </tbody>
+                        </table>
+                      <div style="margin-top:10px; text-align:right;">
+                        <button type="button" onclick="deleteSelected()" style="background:#e74c3c; color:#fff; border:none; border-radius:5px; padding:6px 16px; font-weight:600; cursor:pointer;">선택 삭제</button>
+                      </div>
+                    </form>
+                    <script>
+                    function toggleAll(all) {
+                      const chks = document.querySelectorAll('input[name=\"clientChk\"]');
+                      chks.forEach(function(chk) { chk.checked = all.checked; });
+                    }
+                    function deleteSelected() {
+                      const form = document.getElementById('clientListForm');
+                      const checked = document.querySelectorAll('input[name=\"clientChk\"]:checked');
+                      if (checked.length === 0) {
+                        alert('삭제할 거래처를 선택하세요.');
+                        return;
+                      }
+                      if (confirm('정말 선택한 거래처를 삭제하시겠습니까?')) {
+                        form.submit();
+                      }
+                    }
+                    function toggleDetail(btn) {
+                        var idx = btn.getAttribute('data-idx');
+                        var detailRow = document.getElementById('detail-row-' + idx);
+                        // 이미 열려있으면 닫기
+                        if (detailRow.style.display === '' || detailRow.style.display === 'table-row') {
+                            detailRow.style.display = 'none';
+                            btn.textContent = '상세보기';
+                            return;
+                        }
+                        // 모든 상세행 닫기
+                        document.querySelectorAll('.detail-row').forEach(function(row) {
+                            row.style.display = 'none';
+                        });
+                        // 모든 버튼 텍스트 초기화
+                        document.querySelectorAll('.btn-detail').forEach(function(b) {
+                            if(b.tagName === 'BUTTON') b.textContent = '상세보기';
+                        });
+                        // 펼치기
+                        detailRow.style.display = '';
+                        btn.textContent = '닫기';
+                    }
+                    </script>
+                    </div>
+                    
+                    <!-- 공급업체 목록 -->
+                <div class="table-container" style="width: 600px;">
+                    <h3 style="margin-bottom: 15px;margin-top: 15px; color: #3b6fd6; font-size: 1.1rem;">공급업체 목록</h3>
+                    <form id="supplierListForm" method="post" th:action="@{/client/deleteSelected}">
+                        <table class="custom-table" style="width:85%">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%"><input type="checkbox" id="allSupplierChk" onclick="toggleAllSupplier(this)"></th>
+                                    <th style="width:11%">이름</th>
+                                    <th style="width:9%">담당자</th>
+                                    <th style="width:10%">연락처</th>
+                                    <th style="width:8%">상세보기</th>
+                                    <th style="width:14%">수정/삭제</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <th:block th:each="client, stat : ${list}">
+                                    <tr th:if="${client.client_type == 0}">
+                                        <td><input type="checkbox" name="supplierChk" th:value="${client.client_num}"></td>
+                                    <td th:text="${client.client_name}"></td>
+                                    <td th:text="${client.contact_person}"></td>
+                                    <td th:text="${client.phone}"></td>
+                                        <td>
+                                            <button type="button" class="btn-detail" th:attr="data-idx=${stat.index}" onclick="toggleSupplierDetail(this)">상세보기</button>
+                                        </td>
+                                        <td style="padding:2px 4px;">
+                                            <a th:href="@{/client/form(client_num=${client.client_num})}" class="btn-detail" style="background:#2ecc71; margin-right:2px;">수정</a>
+                                            <a th:href="@{/client/delete(client_num=${client.client_num})}" class="btn-detail" style="background:#e74c3c; margin-left:2px;" onclick="return confirm('정말 삭제하시겠습니까?');">삭제</a>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${client.client_type == 0}" th:id="'supplier-detail-row-' + ${stat.index}" class="detail-row" style="display:none;">
+                                        <td colspan="6">
+                                            <b class="detail-label">　주소</b> <span th:text="${client.address1} + ' ' + ${client.address2}"></span><br>
+                                            <b class="detail-label">연락처</b> <span th:text="${client.phone}"></span><br>
+                                            <b class="detail-label">이메일</b> <span th:text="${client.email}"></span>
+                                        </td>
+                                    </tr>
+                                </th:block>
+                            </tbody>
+                        </table>
+                        <div style="margin-top:10px; text-align:right;">
+                            <button type="button" onclick="deleteSelectedSupplier()" style="background:#e74c3c; color:#fff; border:none; border-radius:5px; padding:6px 16px; font-weight:600; cursor:pointer;">선택 삭제</button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+            <script>
+            function toggleAll(all) {
+              const chks = document.querySelectorAll('input[name=\"clientChk\"]');
+              chks.forEach(function(chk) { chk.checked = all.checked; });
+            }
+            function deleteSelected() {
+              const form = document.getElementById('clientListForm');
+              const checked = document.querySelectorAll('input[name=\"clientChk\"]:checked');
+              if (checked.length === 0) {
+                alert('삭제할 거래처를 선택하세요.');
+                return;
+              }
+              if (confirm('정말 선택한 거래처를 삭제하시겠습니까?')) {
+                form.submit();
+              }
+            }
+            function toggleSupplierDetail(btn) {
+                var idx = btn.getAttribute('data-idx');
+                var detailRow = document.getElementById('supplier-detail-row-' + idx);
+                // 이미 열려있으면 닫기
+                if (detailRow.style.display === '' || detailRow.style.display === 'table-row') {
+                    detailRow.style.display = 'none';
+                    btn.textContent = '상세보기';
+                    return;
+                }
+                // 모든 상세행 닫기
+                document.querySelectorAll('.detail-row').forEach(function(row) {
+                    row.style.display = 'none';
+                });
+                // 모든 버튼 텍스트 초기화
+                document.querySelectorAll('.btn-detail').forEach(function(b) {
+                    if(b.tagName === 'BUTTON') b.textContent = '상세보기';
+                });
+                // 펼치기
+                detailRow.style.display = '';
+                btn.textContent = '닫기';
+            }
+            </script>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const ctx = document.getElementById('clientPieChart').getContext('2d');
+              const clientPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                  labels: ['고객', '공급업체'],
+                  datasets: [{
+                    label: '거래처 구분',
+                    data: [10, 9],
+                    backgroundColor: [
+                      'rgba(255, 99, 132, 0.5)',
+                      'rgba(54, 162, 235, 0.5)'
+                    ]
+                  }]
+                },
+                options: {
+                  responsive: false,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: true }
+                  }
+                }
+              });
+            });
+            </script>
+        </main>
+    </div>
+</div>
+</body>
+</html>
+<style>
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    margin-bottom: 16px;
+    background: #f7faff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(80,120,200,0.04);
+    min-height: 56px;
+}
+.list-header .page-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #3b6fd6;
+}
+.btn-order-create {
+    display: inline-flex;
+    align-items: center;
+    background: #4081FF !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 7px 18px !important;
+    font-weight: bold !important;
+    font-size: 1rem !important;
+    text-decoration: none !important;
+    transition: background 0.2s;
+    line-height: 1.2;
+    height: 40px;
+    box-shadow: 0 1px 4px rgba(80,120,200,0.08);
+    margin-left: 0;
+}
+.btn-order-create img {
+    margin-right: 7px;
+    vertical-align: middle;
+}
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 9pt;
+}
+.custom-table th, .custom-table td {
+    border-bottom: 1px solid #eee;
+    padding: 0px 4px;
+    text-align: center;
+    font-size: 9pt;
+    line-height: 1.2;
+    height: 24px;
+}
+.custom-table th {
+    background: #fafafa;
+    font-weight: 600;
+    height: 38px;
+    padding: 8px 8px;
+    font-size: 1.1em;
+    color: #3b6fd6;
+}
+.btn-detail {
+    background: #528eff;
+    color: #fff !important;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 11px;
+    text-decoration: none;
+    font-size: 0.67rem;
+    font-weight: 600;
+    margin: 0 1px;
+}
+/* 상세정보 행만 별도 스타일 */
+.detail-row td {
+    text-align: left !important;
+    border-bottom: 1px solid #eee;
+    background: #fff;
+    padding: 20px 20px 20px 100px !important;
+    font-size: 9pt;
+    color: #222;
+    border-top: none;
+}
+.detail-row {
+    /* 위쪽에 약간의 여백 */
+    height: 1.5em;
+}
+.table-container {
+  width: 600px;
+}
+.sh-box {
+  display: flex;
+  gap: 20px;
+  width: 1220px;
+  margin: 0 auto;
+}
+.page-main, .dashboard-wrapper, .main-content, .card {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* 페이지 헤더 스타일 */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 60px;
+    padding: 40px 40px 30px 40px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #3b6fd6;
+    margin: 0;
+}
+
+.total-count {
+    font-size: 1rem;
+    color: #666;
+    background-color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 6px rgba(90,150,255,0.08);
+}
+
+.total-count strong {
+    color: #3b6fd6;
+    font-weight: bold;
+}
+.btn-write, .btn-main, .btn-detail, .search-btn, .btn-individual-search {
+    font-weight: 600 !important;
+}
+.btn-individual-search, .search-btn {
+    background: #007aff !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 5px 10px !important;
+    font-size: 0.89rem !important;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.btn-individual-search:hover, .search-btn:hover {
+    background: #0056b3 !important;
+}
+.detail-label {
+  display: inline-block;
+  width: 55px;
+  text-align: left;
+  font-weight: bold;
+}
+</style> 

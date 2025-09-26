@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout_basic}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 등록</title>
+    <link rel="stylesheet" th:href="@{/assets/css/yn/register.css}">
+    <script type="text/javascript" th:src="@{/assets/js/jquery-3.7.1.min.js}"></script>
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}">
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+    <div class="dashboard-wrapper">
+		<!-- 사이드바 -->
+		<th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+	<main class="main-content">
+    <div class="header">
+        <h1>ERP 시스템</h1>
+    </div>
+
+    <div class="container">
+            <div class="form-header">
+                <h2>상품 등록</h2>
+            </div>
+
+            <div class="form-body">
+                <form id="productForm" th:action="@{register}" method="post"
+	  				th:object="${productVO}">
+                    <!-- 기본 정보 -->
+                    <div class="form-section">
+                        <div class="section-title">기본 정보</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="productName">상품명 <span class="required">*</span></label>
+                                <input type="text" th:field="*{product_name}" id="productName" placeholder="상품명을 입력하세요" maxlength="100" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="categoryNum">카테고리 <span class="required">*</span></label>
+                                <select id="categoryNum" th:field="*{category_num}" required>
+			                        <option value="">선택하세요</option>
+			                        <option th:each="category : ${categoryList}"
+			                                th:value="${category['CATEGORY_NUM']}"
+			                                th:text="${category['CATEGORY_NAME']}">
+			                        </option>
+			                    </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">상품 상태 <span class="required">*</span></label>
+                                <select id="status" th:field="*{status}" required>
+                                    <option value="">상태를 선택하세요</option>
+                                    <option value="1">활성</option>
+                                    <option value="0">비활성</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 가격 및 단위 정보 -->
+                    <div class="form-section">
+                        <div class="section-title">가격 및 단위 정보</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="unitPrice">단가 <span class="required">*</span></label>
+                                <input type="number" th:field="*{unit_price}" id="unitPrice" min="0" step="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="unit">단위 <span class="required">*</span></label>
+                                <select id="unit" th:field="*{unit}" required>
+                                    <option value="">단위를 선택하세요</option>
+                                    <option value="개">개</option>
+                                    <option value="박스">박스</option>
+                                    <option value="kg">kg</option>
+                                    <option value="L">L</option>
+                                    <option value="m">m</option>
+                                    <option value="세트">세트</option>
+                                    <option value="팩">팩</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 재고 정보 -->
+                    <div class="form-section">
+                        <div class="section-title">재고 정보</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="initialStock">초기 재고량 <span class="required">*</span></label>
+                                <input type="number" th:field="*{current_quantity}" id="initialStock" min="0" placeholder="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="minStock">최소 재고량</label>
+                                <input type="number" th:field="*{min_stock}" id="minStock" min="0" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="maxStock">최대 재고량</label>
+                                <input type="number" th:field="*{max_stock}" id="maxStock"  min="0" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 버튼 그룹 -->
+                    <div class="button-group">
+                        <button type="button" class="btn btn-outline" onclick="resetForm()">초기화</button>
+                        <button type="button" class="btn btn-secondary" onclick="saveDraft()">임시저장</button>
+                        <button type="submit" class="btn btn-primary">상품 등록</button>
+                    </div>
+                </form>
+        </div>
+    </div>
+</main></div></div>
+<div layout:fragment="pageScript">
+<script type="text/javascript">
+       // 폼 초기화
+        function resetForm() {
+            if (confirm('입력한 내용이 모두 삭제됩니다. 계속하시겠습니까?')) {
+                document.getElementById('productForm').reset();
+            }
+        }
+
+        // 임시저장
+        function saveDraft() {
+            const formData = new FormData(document.getElementById('productForm'));
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            localStorage.setItem('productDraft', JSON.stringify(data));
+            alert('임시저장되었습니다.');
+        }
+
+        // 페이지 로드 시 임시저장 데이터 복원
+        window.addEventListener('load', function() {
+            const draft = localStorage.getItem('productDraft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                Object.keys(data).forEach(key => {
+                    const input = document.getElementById(key);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = data[key] === 'on';
+                        } else {
+                            input.value = data[key];
+                        }
+                    }
+                });
+            }
+        });
+
+</script>
+</div>
+</body>
+</html>

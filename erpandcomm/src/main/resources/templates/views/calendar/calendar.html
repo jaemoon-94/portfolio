@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layouts/layout_basic}">
+<head>
+  <meta charset="UTF-8">
+  <title>캘린더</title>
+  <meta name="csrf-token" th:content="${_csrf.token}">
+  <meta name="csrf-header" th:content="${_csrf.headerName}">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/calendar.css">
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+  <div class="dashboard-wrapper">
+    <th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+    <main class="main-content">
+      <div class="page-header" style="margin-bottom:32px;">
+        <h2 class="page-title" style="font-size:1.6rem; font-weight:bold; color:#285CC3;">캘린더</h2>
+      </div>
+      <div style="width:100%; margin:0 auto; display:flex; flex-direction:row; gap:40px; align-items:flex-start;">
+        <!-- 캘린더(좌측) -->
+        <div class="card" style="background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(80,120,200,0.07); padding:0 0 0 10px; width:50%; min-width:0; margin:0; position:relative;">
+          <button id="calendar-prev-btn" style="position:absolute; left:-36px; top:50%; transform:translateY(-50%); z-index:2; background:none; border:none; cursor:pointer; width:64px; height:64px; display:flex; align-items:center; justify-content:center;">
+            <img src="/assets/images/arrowl.png" alt="이전" width="64" height="64" />
+          </button>
+          <button id="calendar-next-btn" style="position:absolute; right:-36px; top:50%; transform:translateY(-50%); z-index:2; background:none; border:none; cursor:pointer; width:64px; height:64px; display:flex; align-items:center; justify-content:center;">
+            <img src="/assets/images/arrowr.png" alt="다음" width="64" height="64" />
+          </button>
+          <div id="calendar" style="max-width:900px; margin:0 auto;"></div>
+          <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+          <script>
+            // CSRF 토큰 fetch 요청에 자동 추가
+            function csrfFetch(url, options = {}) {
+              const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+              const header = document.querySelector('meta[name="csrf-header"]').getAttribute('content');
+              options.headers = options.headers || {};
+              if (token && header) options.headers[header] = token;
+              return fetch(url, options);
+            }
+            function renderScheduleTable(list) {
+              const tbody = document.getElementById('schedule-tbody');
+              tbody.innerHTML = '';
+              if (!Array.isArray(list) || list.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 3;
+                td.textContent = '일정이 없습니다.';
+                td.style.textAlign = 'center';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+                return;
+              }
+              list.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td style=\"padding:7px 6px; font-size:1rem; width:120px;\">${item.title}</td>
+                  <td style=\"padding:7px 6px; font-size:1rem; width:130px;\">${item.created_at ? item.created_at.slice(0,10) : ''}</td>
+                  <td style=\"padding:7px 6px; min-width:200px; display:flex; gap:4px; justify-content:center;\">
+                    <button class='btn-detail' style='margin-right:2px;' onclick='toggleDetail(this)'>상세보기</button>
+                    <button class='btn-detail' style='background:#e74c3c; margin-left:2px; color:#fff;' onclick=\"deleteSchedule(${item.calendar_id})\">삭제</button>
+                  </td>
+                `;
+                tbody.appendChild(tr);
+                // 상세 내용(숨김)
+                const detailTr = document.createElement('tr');
+                detailTr.style.display = 'none';
+                detailTr.className = 'schedule-detail-row';
+                detailTr.innerHTML = `<td colspan='3' style='background:#f8faff; color:#333; font-size:1rem; padding:16px 18px 16px 32px; border-bottom:1px solid #eaeaea;'>${item.description ? item.description.replace(/\n/g, '<br>') : '내용 없음'}</td>`;
+                tbody.appendChild(detailTr);
+              });
+            }
+            function editSchedule(id, title, desc, date) {
+              const newTitle = prompt('새 일정 제목:', title);
+              if (newTitle && newTitle !== title) {
+                csrfFetch('/calendar/update', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ calendar_id: id, title: newTitle })
+                }).then(() => { calendar.refetchEvents(); fetchTable(); });
+              }
+            }
+            function deleteSchedule(id) {
+              if (confirm('정말 삭제하시겠습니까?')) {
+                csrfFetch(`/calendar/delete/${id}`, { method: 'DELETE' })
+                  .then(() => { calendar.refetchEvents(); fetchTable(); });
+              }
+            }
+            function toggleDetail(btn) {
+              const tr = btn.closest('tr');
+              const next = tr.nextElementSibling;
+              if (next && next.classList.contains('schedule-detail-row')) {
+                next.style.display = next.style.display === 'none' ? '' : 'none';
+                btn.textContent = next.style.display === 'none' ? '상세보기' : '닫기';
+              }
+            }
+            let calendar;
+            function fetchTable() {
+              // 현재 달 범위 가져오기
+              const view = calendar.view;
+              const start = view.currentStart.toISOString().slice(0, 10);
+              const end = view.currentEnd.toISOString().slice(0, 10);
+              csrfFetch(`/calendar/month?monthStart=${start}&monthEnd=${end}`)
+                .then(res => res.json())
+                .then(data => renderScheduleTable(data));
+            }
+            let modal = null, modalTitle = null, modalDesc = null, modalSave = null, modalCancel = null, modalDelete = null, modalTitleText = null;
+            let editingEvent = null, editingDate = null;
+            document.addEventListener('DOMContentLoaded', function() {
+              var calendarEl = document.getElementById('calendar');
+              console.log('calendarEl:', calendarEl); // 캘린더 DOM 확인용
+              calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ko',
+                headerToolbar: { left: '', center: 'title', right: '' },
+                dayCellContent: function(arg) { return arg.date.getDate(); },
+                events: function(fetchInfo, successCallback, failureCallback) {
+                  const start = fetchInfo.startStr.slice(0, 10);
+                  const end = fetchInfo.endStr.slice(0, 10);
+                  csrfFetch(`/calendar/month?monthStart=${start}&monthEnd=${end}`)
+                    .then(res => res.json())
+                    .then(data => {
+                      successCallback(Array.isArray(data) ? data.map(item => ({
+                        id: item.calendar_id,
+                        title: item.title,
+                        start: item.created_at,
+                        allDay: true,
+                        backgroundColor: item.is_public === 'Y' ? '#2176e8' : '#aaa',
+                        borderColor: '#2176e8',
+                        extendedProps: item
+                      })) : []);
+                    });
+                },
+                dateClick: function(info) { openModal('add', info.dateStr); },
+                eventClick: function(info) { openModal('edit', info.event.startStr, info.event); },
+                datesSet: function() { fetchTable(); }
+              });
+              calendar.render();
+              fetchTable();
+              // 커스텀 네비게이션 버튼 이벤트
+              document.getElementById('calendar-prev-btn').onclick = function() { calendar.prev(); };
+              document.getElementById('calendar-next-btn').onclick = function() { calendar.next(); };
+
+              // 모달 요소 캐싱
+              modal = document.getElementById('calendar-modal');
+              modalTitle = document.getElementById('modal-title');
+              modalDesc = document.getElementById('modal-desc');
+              modalSave = document.getElementById('modal-save');
+              modalCancel = document.getElementById('modal-cancel');
+              modalDelete = document.getElementById('modal-delete');
+              modalTitleText = document.getElementById('calendar-modal-title');
+
+              // 모달 열기/닫기/저장/삭제 함수
+              function openModal(mode, dateStr, event) {
+                editingEvent = event || null;
+                editingDate = dateStr;
+                modalTitle.value = event ? event.title : '';
+                modalDesc.value = event && event.extendedProps ? (event.extendedProps.description || '') : '';
+                modalTitleText.textContent = mode === 'add' ? '일정 등록' : '일정 수정';
+                modalDelete.style.display = mode === 'edit' ? '' : 'none';
+                modal.style.display = 'flex';
+                setTimeout(() => { modalTitle.focus(); }, 100);
+              }
+              function closeModal() {
+                modal.style.display = 'none';
+                editingEvent = null;
+                editingDate = null;
+                modalTitle.value = '';
+                modalDesc.value = '';
+              }
+              modalSave.onclick = function() {
+                const title = modalTitle.value.trim();
+                const desc = modalDesc.value.trim();
+                if (!title) { alert('제목을 입력하세요.'); modalTitle.focus(); return; }
+                if (editingEvent) {
+                  // 수정
+                  csrfFetch('/calendar/update', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ calendar_id: editingEvent.id, title, description: desc })
+                  }).then(() => { calendar.refetchEvents(); fetchTable(); closeModal(); });
+                } else {
+                  // 등록
+                  csrfFetch('/calendar/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description: desc, is_public: 'Y', created_at: editingDate })
+                  }).then(() => { calendar.refetchEvents(); fetchTable(); closeModal(); });
+                }
+              };
+              modalDelete.onclick = function() {
+                if (editingEvent && confirm('정말 삭제하시겠습니까?')) {
+                  csrfFetch(`/calendar/delete/${editingEvent.id}`, { method: 'DELETE' })
+                    .then(() => { calendar.refetchEvents(); fetchTable(); closeModal(); });
+                }
+              };
+              modalCancel.onclick = closeModal;
+              modal.onclick = function(e) { if (e.target === modal) closeModal(); };
+            });
+          </script>
+        </div>
+        <!-- 일정 테이블(우측) -->
+        <div class="card" style="background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(80,120,200,0.07); padding:32px; width:50%; min-width:0;">
+          <h3 style="font-size:1.1rem; font-weight:bold; color:#285CC3; margin-bottom:18px;">일정 목록</h3>
+          <table id="schedule-table" style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f5f8ff;">
+                <th style="padding:8px 6px; font-size:1rem; color:#285CC3; width:120px;">제목</th>
+                <th style="padding:8px 6px; font-size:1rem; color:#285CC3; width:130px;">작성일</th>
+                <th style="padding:8px 6px; font-size:1rem; color:#285CC3; width:200px;">관리</th>
+              </tr>
+            </thead>
+            <tbody id="schedule-tbody">
+              <!-- JS로 일정 행 렌더링 -->
+            </tbody>
+          </table>
+        </div>
+        <!-- 일정 등록/수정 모달 -->
+        <div id="calendar-modal" style="display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:rgba(0,0,0,0.18); z-index:9999; align-items:center; justify-content:center;">
+          <div style="background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(80,120,200,0.13); width:400px; padding:32px 28px 24px 28px; margin:auto; display:flex; flex-direction:column; gap:18px;">
+            <h3 id="calendar-modal-title" style="font-size:1.2rem; font-weight:bold; color:#285CC3; margin-bottom:8px;">일정 등록</h3>
+            <input id="modal-title" type="text" placeholder="제목(필수)" maxlength="200" style="font-size:1rem; padding:8px 10px; border:1.5px solid #e0e6f0; border-radius:6px;">
+            <textarea id="modal-desc" placeholder="내용(선택)" rows="4" style="font-size:1rem; padding:8px 10px; border:1.5px solid #e0e6f0; border-radius:6px; resize:vertical;"></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+              <button id="modal-cancel" style="background:#eee; color:#444; border:none; border-radius:6px; font-size:1rem; padding:7px 18px; cursor:pointer;">취소</button>
+              <button id="modal-save" style="background:#2176e8; color:#fff; border:none; border-radius:6px; font-size:1rem; padding:7px 18px; cursor:pointer;">저장</button>
+              <button id="modal-delete" style="background:#e74c3c; color:#fff; border:none; border-radius:6px; font-size:1rem; padding:7px 18px; cursor:pointer; display:none;">삭제</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html> 

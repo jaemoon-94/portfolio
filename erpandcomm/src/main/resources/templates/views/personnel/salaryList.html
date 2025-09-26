@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/layout_basic}">
+<head>
+    <meta charset="UTF-8">
+    <title>Office ERP - 급여관리</title>
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}">
+    <link rel="stylesheet" th:href="@{/assets/css/yj/salaryListAdmin.css}">
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+ <div class="page-main">
+        <div class="dashboard-wrapper">
+        <!-- 사이드바 -->
+        <th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+          <!-- 메인 콘텐츠 -->
+            <div class="main-content">
+                <div class="page-header">
+                    <h1 class="page-title">급여 관리</h1>
+                </div>
+                <div class="container">
+                    <!-- 🔍 조회 조건 -->
+                    <section class="search-section">
+                        <form class="search-form" action="/salary/search" method="get">
+                            <label>
+                                급여월:
+                                <input type="month" name="salaryMonth" value="2025-07">
+                            </label>
+                            <label>
+                                직원명:
+                                <input type="text" name="employeeName" placeholder="직원명 입력">
+                            </label>
+                            <button type="submit" class="search-btn">검색</button>
+                        </form>
+                    </section>
+
+                    <!-- 📋 급여 테이블 -->
+                    <section class="salary-table-section">
+                        <table class="salary-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>급여월</th>
+                                    <th>직원번호</th>
+                                    <th>이름</th>
+                                    <th>기본급</th>
+                                    <th>상여금</th>
+                                    <th>공제액</th>
+                                    <th>실지급액</th>
+                                    <th>상태</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox" value="1"></td>
+                                    <td>2025-07</td>
+                                    <td>E001</td>
+                                    <td>홍길동</td>
+                                    <td>3,000,000</td>
+                                    <td>500,000</td>
+                                    <td>200,000</td>
+                                    <td>3,300,000</td>
+                                    <td><span class="status-complete">등록완료</span></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" value="2"></td>
+                                    <td>2025-07</td>
+                                    <td>E002</td>
+                                    <td>김영희</td>
+                                    <td>2,800,000</td>
+                                    <td>400,000</td>
+                                    <td>180,000</td>
+                                    <td>3,020,000</td>
+                                    <td><span class="status-complete">등록완료</span></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" value="3"></td>
+                                    <td>2025-07</td>
+                                    <td>E003</td>
+                                    <td>박민수</td>
+                                    <td>3,200,000</td>
+                                    <td>600,000</td>
+                                    <td>220,000</td>
+                                    <td>3,580,000</td>
+                                    <td><span class="status-pending">처리중</span></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" value="4"></td>
+                                    <td>2025-07</td>
+                                    <td>E004</td>
+                                    <td>이지은</td>
+                                    <td>2,600,000</td>
+                                    <td>350,000</td>
+                                    <td>160,000</td>
+                                    <td>2,790,000</td>
+                                    <td><span class="status-complete">등록완료</span></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" value="5"></td>
+                                    <td>2025-07</td>
+                                    <td>E005</td>
+                                    <td>최동욱</td>
+                                    <td>3,500,000</td>
+                                    <td>700,000</td>
+                                    <td>250,000</td>
+                                    <td>3,950,000</td>
+                                    <td><span class="status-complete">등록완료</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <!-- 🔘 기능 버튼 -->
+                    <div class="action-buttons">
+                    <div sec:authorize="hasRole('ROLE_HR')">
+                        <button class="btn" onclick="location.href='/personnel/salaryForm'">
+                            ➕ 급여 등록
+                        </button>
+                     </div>
+                        <button class="btn btn-success">
+                            📄 명세서 생성
+                        </button>
+                        <button class="btn btn-secondary">
+                            🖨️ 명세서 출력
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div layout:fragment="pageScript"></div>
+ <script>
+        // 전체 선택 체크박스 기능
+        document.addEventListener('DOMContentLoaded', function() {
+            const headerCheckbox = document.querySelector('thead input[type="checkbox"]');
+            const rowCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            
+            headerCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+            
+            // 개별 체크박스 상태 변경 시 헤더 체크박스 상태 업데이트
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const checkedCount = document.querySelectorAll('tbody input[type="checkbox"]:checked').length;
+                    headerCheckbox.checked = checkedCount === rowCheckboxes.length;
+                    headerCheckbox.indeterminate = checkedCount > 0 && checkedCount < rowCheckboxes.length;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

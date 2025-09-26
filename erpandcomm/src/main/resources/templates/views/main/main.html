@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layouts/layout_basic}">
+<head>
+<meta charset="UTF-8">
+<title>Office ERP - 대시보드</title>
+<meta name="csrf-token" th:content="${_csrf.token}">
+<meta name="csrf-header" th:content="${_csrf.headerName}">
+<style>
+    .page-main .page-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 60px !important;
+      padding: 40px 40px 30px 40px !important;
+      border-bottom: 2px solid #e0e0e0 !important;
+    }
+    .page-main .page-title {
+      font-size: 1.5rem !important;
+      font-weight: bold !important;
+      color: #3b6fd6 !important;
+      margin: 0 !important;
+    }
+    /* 미니 달력 ERP 스타일 */
+#mini-calendar .fc {
+  background: #fff;
+  border-radius: 12px;
+  font-family: 'Noto Sans KR', Arial, sans-serif;
+}
+#mini-calendar .fc-col-header-cell {
+  background: #fff !important;
+  color: #2851a3;
+  font-weight: 600;
+  font-size: 15px;
+  border: none !important;
+  padding-bottom: 7px !important;
+  position: relative;
+}
+#mini-calendar .fc-col-header-cell::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: #e0e6f0;
+  z-index: 2;
+}
+#mini-calendar .fc-daygrid-day-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+#mini-calendar .fc-day-today {
+  background: #e3f0ff !important;
+  border-radius: 8px;
+  border: 1.5px solid #4081ff;
+  color: #2851a3;
+}
+#mini-calendar .fc-daygrid-day:hover {
+  background: #f0f6ff;
+  cursor: pointer;
+}
+#mini-calendar .fc-daygrid-day.fc-day-selected {
+  background: #d0e6ff !important;
+  border-radius: 8px;
+  border: 1.5px solid #2851a3;
+}
+#mini-calendar .fc-daygrid-day-number {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 15px;
+  color: #2851a3;
+  font-weight: 600;
+  margin: 0;
+  padding: 0;
+}
+/* 토요일(6번째 컬럼) 연한 파랑, 일요일(1번째 컬럼) 빨간색 */
+#mini-calendar .fc-day-sat .fc-daygrid-day-number { color: #4a90e2 !important; }
+#mini-calendar .fc-day-sun .fc-daygrid-day-number { color: #e95254 !important; }
+#mini-calendar .fc-toolbar-title {
+  color: #285CC3 !important;
+  font-weight: bold;
+  text-align: right;
+  width: 100%;
+  display: block;
+}
+#mini-calendar .fc-header-toolbar {
+  justify-content: flex-end !important;
+  display: flex !important;
+}
+#mini-calendar .fc-toolbar-title {
+  color: #383838 !important;
+  font-weight: bold;
+  text-align: right !important;
+  width: auto !important;
+  min-width: 0 !important;
+  flex: none !important;
+  font-size: 1.15rem !important;
+  padding-bottom: 14px !important;
+}
+#mini-calendar .fc-scrollgrid,
+#mini-calendar .fc-scrollgrid-section,
+#mini-calendar .fc-scrollgrid-sync-table,
+#mini-calendar .fc-col-header,
+#mini-calendar .fc-daygrid-body,
+#mini-calendar .fc-scrollgrid td,
+#mini-calendar .fc-scrollgrid th,
+#mini-calendar .fc-theme-standard .fc-scrollgrid,
+#mini-calendar .fc-theme-standard td,
+#mini-calendar .fc-theme-standard th {
+  border: none !important;
+  box-shadow: none !important;
+}
+#mini-calendar .fc-daygrid-day,
+#mini-calendar .fc-col-header-cell {
+  border: none !important;
+}
+#mini-calendar-events .mini-event {
+  background: #f5f8ff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(80,120,200,0.07);
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  color: #222;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+#mini-calendar-events .mini-event .badge {
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 10px;
+  margin-left: 10px;
+  background: #e6f0ff;
+  color: #2176e8;
+}
+#mini-calendar-events .mini-event .badge.private {
+  background: #ffeaea;
+  color: #e95254;
+}
+#mini-calendar-events .mini-event-title {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  color: #2851a3;
+}
+#mini-calendar-events .mini-event:hover {
+  background: #e3f0ff;
+}
+#mini-calendar-events .no-event {
+  color: #888;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px 0 8px 0;
+}
+#calendar-widget .today-event {
+  background: #f8faff;
+  border-radius: 7px;
+  box-shadow: 0 1px 4px rgba(80,120,200,0.04);
+  padding: 7px 12px;
+  margin-bottom: 7px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #222;
+  font-weight: 500;
+  border: 1px solid #e0e6f0;
+  transition: background 0.15s;
+}
+#calendar-widget .today-event-title {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  color: #2851a3;
+  font-size: 13px;
+}
+#calendar-widget .today-event .badge {
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 2px 8px;
+  margin-left: 8px;
+  background: #e6f0ff;
+  color: #2176e8;
+}
+#calendar-widget .today-event .badge.private {
+  background: #ffeaea;
+  color: #e95254;
+}
+#calendar-widget .today-event:hover {
+  background: #e3f0ff;
+}
+#calendar-widget .no-event {
+  color: #888;
+  font-size: 12px;
+  text-align: center;
+  padding: 12px 0 6px 0;
+}
+#mini-calendar {
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(80,120,200,0.07);
+}
+.btn-write {
+  background: #2176e8;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 16px 5px 10px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-write:hover {
+  background: #4081ff;
+}
+#calendar-list > div {
+  line-height: 1.8;
+}
+</style>
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+	<div class="dashboard-wrapper">
+		<!-- 사이드바 -->
+		<th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+
+		<!-- 메인 컨텐츠 -->
+		<main class="main-content">
+			<div class="page-header">
+				<h2 class="page-title-dashboard">대시보드</h2>
+			</div>
+			<div class="welcome-message" style="font-size: 2.3rem; font-weight: bold; color: #285CC3; margin-bottom: 10px; text-align: right; margin-right: 26px;">
+				<span th:if="${loginMember != null}" th:text="${loginMember.user_name} + ' 님, 환영합니다!'">로그인 사용자 닉네임</span>
+				<span th:if="${loginMember == null}">로그인 해주세요.</span>
+			</div>
+			<!-- 공지사항 + 도넛 그래프 묶음 flex row 시작 -->
+<div style="display: flex; flex-direction: row; gap: 30px; width: 100%; margin-left:24px; margin-top:20px; margin-bottom: 32px; align-items: flex-start;">
+  <!-- 공지사항 그룹 -->
+  <div style="display: flex; flex-direction: column; width: 600px; min-width: 320px;">
+    <div style="font-size:1.5rem; font-weight:bold; margin-bottom:10px; color:#285CC3; padding-left:10px;">공지사항</div>
+    <div style="background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,0.08); padding: 5px 30px 12px 10px; width:100%; min-width:320px;">
+      <table style="width:100%; border-collapse:collapse; background:none;">
+        <tbody>
+          <tr th:each="notice, stat : ${noticeList}" th:if="${stat.index} < 4" style="border-bottom:1px solid #e0e6f0; transition:background 0.15s;" onmouseover="this.style.background='#f5f8ff'" onmouseout="this.style.background='none'">
+            <td style="padding:14px 24px 14px 8px; color:#E95254; font-weight:700; text-align:center; width:12%;">중요공지</td>
+            <td style="padding:14px 32px 14px 10px; color:#373737; font-weight:600; text-align:left; width:50%;" th:text="${notice.noti_title}"></td>
+            <td style="padding:14px 10px; color:#888; text-align:center; width:15%;" th:text="${#dates.format(notice.noti_date, 'yyyy-MM-dd')}"></td>
+          </tr>
+          <tr th:if="${noticeList == null or noticeList.size() == 0}">
+            <td colspan="3" style="color:#888; font-size:15px; padding:14px 10px; text-align:center;">공지사항이 없습니다.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="text-align:right; margin-top:6px; margin-right:6px">
+        <a href="/notice/noticeList" style="font-size:13px; color:#2176e8; font-weight:600;">더보기</a>
+      </div>
+    </div>
+  </div>
+  <!-- 도넛 그래프 그룹 -->
+  <div style="display: flex; flex-direction: column; width: 450px; min-width: 320px;">
+    <div style="font-size:1.2rem; font-weight:bold; margin-bottom:10px; color:#285CC3; text-align:left; padding-left:10px;">거래처 비율 통계</div>
+    <div class="card" style="background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 11px 0 0 0; width:100%; min-width:320px;">
+      <div style="width:100%; display:flex; flex-direction: row; justify-content: center; align-items: flex-start; min-height:32px;">
+        <div style="margin-left:0; margin-right:16px; transform: translateX(-30px);">
+          <canvas id="mainClientPieChart" width="220" height="220" style="display: block;"></canvas>
+        </div>
+        <div id="mainClientPieLegend" style="margin-right:30px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 공지사항 + 도넛 그래프 묶음 flex row 끝 -->
+			<div style="width:1200px; margin-left:120px; margin-right:0; margin-top:25px;">
+			</div>
+			<div style="display: flex; flex-direction: row; justify-content: flex-start; gap: 28px; width:1200px; margin-left:20px; margin-right:0;">
+				<div style="display: flex; flex-direction: column; align-items: flex-start; width: 600px;">
+					<div style="font-size:1.3rem; font-weight:bold; color:#285CC3; margin-bottom: 6px; margin-left: 6px; margin-top:0px;">판매주문 통계</div>
+					<div style="background: #fff; border-radius: 16px; box-shadow: 0 4px 18px rgba(80,120,200,0.14); width: 100%; height: 380px; display: flex; align-items: center; justify-content: center;">
+						<canvas id="salesOrderChart" width="505" height="300"></canvas>
+					</div>
+				</div>
+				<div style="display: flex; flex-direction: column; align-items: flex-start; width: 600px;">
+					<div style="font-size:1.3rem; font-weight:bold; color:#285CC3; margin-bottom: 6px; margin-left: 6px; margin-top:0px;">구매주문 통계</div>
+					<div style="background: #fff; border-radius: 16px; box-shadow: 0 4px 18px rgba(80,120,200,0.14); width: 100%; height: 380px; display: flex; align-items: center; justify-content: center;">
+						<canvas id="purchaseOrderChart" width="505" height="300"></canvas>
+					</div>
+				</div>
+			</div>
+			<!-- 오른쪽(미니 달력 위, 오늘의 일정 아래) -->
+			<div style="position:absolute; top:275px; right:40px; width:340px; z-index:2;">
+  <div id="mini-calendar" style="background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(80,120,200,0.07); padding:12px; width:340px;"></div>
+  <div id="mini-calendar-events" style="margin-bottom:18px; width:340px;"></div>
+  <!-- 오늘의 일정 제목+등록버튼 flex row 그룹 -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+  <div style="font-weight:bold; color:#2851a3; font-size:1.13rem; margin-left:7px;">오늘의 일정</div>
+  <button id="calendar-add-btn" style="background:#2176e8; color:#fff; border:none; border-radius:6px; font-size:1rem; font-weight:500; padding:8px 22px; margin-left:auto; cursor:pointer;" onclick="location.href='/calendar'">일정 등록</button>
+</div>
+<div id="calendar-widget" style="background:#fff; border-radius:12px; box-shadow:0 2px 8px rgba(80,120,200,0.07); padding:22px 22px 16px 22px; min-height:120px;">
+  <div id="calendar-add-form" style="display:none; margin-bottom:10px;"></div>
+  <div id="calendar-list"></div>
+  <div style="text-align:right; margin-top:6px;">
+    <a href="/calendar" style="font-size:13px; color:#2176e8; font-weight:600;">더보기</a>
+  </div>
+</div>
+</div>
+		</main>
+	</div>
+</div>
+<div layout:fragment="pageScript">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // 판매주문 그래프
+  fetch('/sales/stats/monthly')
+    .then(res => res.json())
+    .then(data => {
+      const labels = data.map(item => {
+        const m = (item.MONTH || item.month);
+        if (m.includes('-')) return parseInt(m.split('-')[1], 10) + '월';
+        return m.length === 1 ? m + '월' : (m.replace(/^0/, '') + '월');
+      });
+      const totals = data.map(item => item.TOTAL || item.total);
+      new Chart(document.getElementById('salesOrderChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '판매주문',
+            data: totals,
+            backgroundColor: [
+              '#B3C6FF', '#A3BFFA', '#7EA6F7', '#5B8DEE', '#3A6ED8', '#2C5CC5', '#1E47A2', '#1450B8', '#1C7ED6', '#228BE6', '#339AF0', '#4DABF7'
+            ],
+            barThickness: 48,
+            categoryPercentage: 0.7,
+            barPercentage: 1.0
+          }]
+        },
+        options: {
+          plugins: { legend: { display: true, position: 'top', align: 'end' } },
+          scales: {
+            x: {
+              ticks: { display: true },
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { display: false },
+              grid: { display: true }
+            }
+          }
+        }
+      });
+    });
+  // 구매주문 그래프
+  fetch('/purchase/stats/monthly')
+    .then(res => res.json())
+    .then(data => {
+      const labels = data.map(item => {
+        const m = (item.MONTH || item.month);
+        if (m.includes('-')) return parseInt(m.split('-')[1], 10) + '월';
+        return m.length === 1 ? m + '월' : (m.replace(/^0/, '') + '월');
+      });
+      const totals = data.map(item => item.TOTAL || item.total);
+      new Chart(document.getElementById('purchaseOrderChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '구매주문',
+            data: totals,
+            backgroundColor: [
+              '#B3C6FF', '#A3BFFA', '#7EA6F7', '#5B8DEE', '#3A6ED8', '#2C5CC5', '#1E47A2', '#1450B8', '#1C7ED6', '#228BE6', '#339AF0', '#4DABF7'
+            ],
+            barThickness: 48,
+            categoryPercentage: 0.7,
+            barPercentage: 1.0
+          }]
+        },
+        options: {
+          plugins: { legend: { display: true, position: 'top', align: 'end' } },
+          scales: {
+            x: {
+              ticks: { display: true },
+              grid: { display: false }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { display: false },
+              grid: { display: true }
+            }
+          }
+        }
+      });
+    });
+
+  // 오늘의 일정 위젯
+  fetch('/calendar/today')
+    .then(res => res.json())
+    .then(list => {
+      const wrap = document.getElementById('calendar-list');
+      if (!list || list.length === 0) {
+        wrap.innerHTML = '<div style="color:#888; font-size:14px;">오늘 등록된 일정이 없습니다.</div>';
+        return;
+      }
+      wrap.innerHTML = list.map(item =>
+        `<div style='margin-bottom:10px;'>
+          <div style='font-weight:500; color:#2176e8; font-size:1.05rem;'>${item.title}</div>
+          <div style='color:#666; font-size:13px;'>${item.description ? item.description.substring(0,30) : ''}</div>
+          <div style='color:#aaa; font-size:12px;'>${item.created_at ? item.created_at.substring(0,10) : ''} / 공개:${item.is_public === 'Y' ? 'O' : 'X'}</div>
+        </div>`
+      ).join('');
+    });
+
+  // 도넛 그래프 추가 (legend 우측 상단 커스텀)
+  const pieCtx = document.getElementById('mainClientPieChart');
+  if (pieCtx) {
+    const pieLabels = ['고객', '공급업체'];
+    const pieColors = [
+      'rgba(255, 99, 132, 0.5)',
+      'rgba(54, 162, 235, 0.5)'
+    ];
+    new Chart(pieCtx, {
+      type: 'doughnut',
+      data: {
+        labels: pieLabels,
+        datasets: [{
+          label: '거래처 구분',
+          data: [10, 9],
+          backgroundColor: pieColors
+        }]
+      },
+      options: {
+        responsive: false,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    });
+    // 커스텀 legend 생성 (세로 정렬)
+    const legendDiv = document.getElementById('mainClientPieLegend');
+    if (legendDiv) {
+      legendDiv.innerHTML = pieLabels.map((label, i) =>
+        `<div style='display:flex; align-items:center; margin-bottom:6px;'>
+          <span style='display:inline-block; width:16px; height:16px; background:${pieColors[i]}; border-radius:3px; margin-right:8px;'></span>
+          <span style='font-size:14px; color:#444;'>${label}</span>
+        </div>`
+      ).join('');
+    }
+  }
+});
+
+function toggleNotice(btn) {
+  const tr = btn.closest('tr');
+  const next = tr.nextElementSibling;
+  if (next && next.classList.contains('notice-content-row')) {
+    next.style.display = (next.style.display === 'table-row') ? 'none' : 'table-row';
+    btn.textContent = (next.style.display === 'table-row') ? '-' : '+';
+  }
+}
+
+// CSRF 토큰 fetch 유틸
+function csrfFetch(url, options = {}) {
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  const header = document.querySelector('meta[name="csrf-header"]')?.getAttribute('content');
+  options.headers = options.headers || {};
+  if (token && header) options.headers[header] = token;
+  // 세션 쿠키 항상 포함
+  if (!options.credentials) options.credentials = 'same-origin';
+  return fetch(url, options);
+}
+// 오늘의 일정 위젯 ajax 등록/폼 토글 및 첫 로딩 카드 스타일 유지
+(function() {
+    const addBtn = document.getElementById('calendar-add-btn');
+    const form = document.getElementById('calendar-add-form');
+    const submitBtn = document.getElementById('calendar-add-submit');
+    const cancelBtn = document.getElementById('calendar-add-cancel');
+    const titleInput = document.getElementById('calendar-title-input');
+    const publicInput = document.getElementById('calendar-public-input');
+    const listDiv = document.getElementById('calendar-list');
+    if (addBtn && form && submitBtn && cancelBtn && titleInput && publicInput) {
+        addBtn.onclick = function() {
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            if (form.style.display === 'block') titleInput.focus();
+        };
+        cancelBtn.onclick = function() {
+            form.style.display = 'none';
+            titleInput.value = '';
+        };
+        submitBtn.onclick = function() {
+            const title = titleInput.value.trim();
+            const is_public = publicInput.value;
+            if (!title) { alert('제목을 입력하세요.'); titleInput.focus(); return; }
+            csrfFetch('/calendar/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, is_public, description: '', updated_at: '' })
+            }).then(res => res.json())
+              .then(result => {
+                if (result === 1) {
+                    titleInput.value = '';
+                    form.style.display = 'none';
+                    // 일정 목록 갱신
+                    fetch('/calendar/today')
+                        .then(res => res.json())
+                        .then(list => {
+                            if (Array.isArray(list) && list.length > 0) {
+                                listDiv.innerHTML = list.map(item =>
+                                  `<div class=\"today-event\">
+                                     <span class=\"today-event-title\">${item.title}</span>
+                                     <span class=\"badge${item.is_public==='Y'?'':' private'}\">${item.is_public==='Y'?'공개':'비공개'}</span>
+                                   </div>`
+                                ).join('');
+                            } else {
+                                listDiv.innerHTML = '<div class=\"no-event\">오늘 일정이 없습니다.</div>';
+                            }
+                        });
+                } else {
+                    alert('등록 실패(로그인 세션 만료 또는 서버 오류)');
+                }
+            });
+        };
+    }
+    // 첫 로딩 시에도 카드 스타일로 렌더링
+    if (listDiv) {
+      fetch('/calendar/today')
+        .then(res => res.json())
+        .then(list => {
+          if (Array.isArray(list) && list.length > 0) {
+            listDiv.innerHTML = list.map(item =>
+              `<div class=\"today-event\">
+                 <span class=\"today-event-title\">${item.title}</span>
+                 <span class=\"badge${item.is_public==='Y'?'':' private'}\">${item.is_public==='Y'?'공개':'비공개'}</span>
+               </div>`
+            ).join('');
+          } else {
+            listDiv.innerHTML = '<div class=\"no-event\">오늘 일정이 없습니다.</div>';
+          }
+        });
+    }
+})();
+// 미니 달력 위젯 및 일정 조회
+(function() {
+  var miniCalEl = document.getElementById('mini-calendar');
+  var eventsDiv = document.getElementById('mini-calendar-events');
+  if (!miniCalEl) return;
+  var miniCal = new FullCalendar.Calendar(miniCalEl, {
+    initialView: 'dayGridMonth',
+    height: 360,
+    headerToolbar: { left: '', center: 'title', right: '' },
+    locale: 'ko',
+    selectable: true,
+    dayCellContent: function(arg) {
+      return arg.date.getDate().toString();
+    },
+    dateClick: function(info) {
+      fetch(`/calendar/month?monthStart=${info.dateStr}&monthEnd=${info.dateStr}`)
+        .then(res => res.json())
+        .then(list => {
+          if (Array.isArray(list) && list.length > 0) {
+            eventsDiv.innerHTML = list.map(item =>
+              `<div class="mini-event">
+                 <span class="mini-event-title">${item.title}</span>
+                 <span class="badge${item.is_public==='Y'?'':' private'}">${item.is_public==='Y'?'공개':'비공개'}</span>
+               </div>`
+            ).join('');
+          } else {
+            eventsDiv.innerHTML = '<div class="no-event">일정이 없습니다.</div>';
+          }
+        });
+    }
+  });
+  miniCal.render();
+})();
+</script>
+</div>
+</body>
+</html>

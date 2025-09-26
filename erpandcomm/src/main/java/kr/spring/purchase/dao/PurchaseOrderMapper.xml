@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.spring.purchase.dao.PurchaseOrderMapper">
+
+    <!-- purchase_order CRUD -->
+    <insert id="insertPurchaseOrder" parameterType="kr.spring.purchase.vo.PurchaseOrderVO">
+        <selectKey keyProperty="purchase_order_num" resultType="long" order="BEFORE">
+            SELECT purchase_order_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO purchase_order (purchase_order_num, supplier_num, order_date, total_price, emp_num)
+        VALUES (#{purchase_order_num}, #{supplier_num}, sysdate, #{total_price}, #{emp_num})
+    </insert>
+
+    <select id="selectPurchaseOrder" parameterType="long" resultType="kr.spring.purchase.vo.PurchaseOrderVO">
+        SELECT po.purchase_order_num,
+               po.supplier_num,
+               NVL(c.client_name, '미지정') as client_name,
+               po.order_date,
+               po.total_price,
+               po.emp_num,
+               d.user_name as emp_name
+        FROM purchase_order po
+        LEFT JOIN client c ON po.supplier_num = c.client_num
+        LEFT JOIN euser u ON po.emp_num = u.user_num
+        LEFT JOIN euser_detail d ON u.user_num = d.user_num
+        WHERE po.purchase_order_num = #{purchase_order_num}
+    </select>
+
+    <select id="selectPurchaseOrderList" resultType="kr.spring.purchase.vo.PurchaseOrderVO">
+        SELECT 
+            po.purchase_order_num,
+            po.supplier_num,
+            NVL(c.client_name, '미지정') as client_name,
+            NVL(s.client_name, '미지정') as supplier_name,
+            po.order_date,
+            po.total_price,
+            po.emp_num,
+            d.user_name as emp_name
+        FROM purchase_order po
+        LEFT JOIN client c ON po.supplier_num = c.client_num
+        LEFT JOIN client s ON po.supplier_num = s.client_num
+        LEFT JOIN euser u ON po.emp_num = u.user_num
+        LEFT JOIN euser_detail d ON u.user_num = d.user_num
+        ORDER BY po.purchase_order_num DESC
+    </select>
+
+    <select id="selectPurchaseOrderListByMap" parameterType="map" resultType="kr.spring.purchase.vo.PurchaseOrderVO">
+        SELECT 
+            po.purchase_order_num,
+            po.supplier_num,
+            NVL(c.client_name, '미지정') as client_name,
+            NVL(s.client_name, '미지정') as supplier_name,
+            po.order_date,
+            po.total_price,
+            po.emp_num,
+            d.user_name as emp_name
+        FROM purchase_order po
+        LEFT JOIN client c ON po.supplier_num = c.client_num
+        LEFT JOIN client s ON po.supplier_num = s.client_num
+        LEFT JOIN euser u ON po.emp_num = u.user_num
+        LEFT JOIN euser_detail d ON u.user_num = d.user_num
+        ORDER BY po.purchase_order_num DESC
+    </select>
+
+    <update id="updatePurchaseOrder" parameterType="kr.spring.purchase.vo.PurchaseOrderVO">
+        UPDATE purchase_order
+        SET supplier_num = #{supplier_num},
+            order_date = #{order_date},
+            total_price = #{total_price},
+            emp_num = #{emp_num}
+        WHERE purchase_order_num = #{purchase_order_num}
+    </update>
+
+    <delete id="deletePurchaseOrder" parameterType="long">
+        DELETE FROM purchase_order WHERE purchase_order_num = #{purchase_order_num}
+    </delete>
+
+    <!-- purchase_order_detail CRUD -->
+    <insert id="insertPurchaseOrderDetail" parameterType="kr.spring.purchase.vo.PurchaseOrderDetailVO">
+        INSERT INTO purchase_order_detail (purchase_order_num, product_num, quantity, unit_price)
+        VALUES (#{purchase_order_num}, #{product_num}, #{quantity}, #{unit_price})
+    </insert>
+
+    <select id="selectPurchaseOrderDetailList" parameterType="long" resultType="kr.spring.purchase.vo.PurchaseOrderDetailVO">
+        SELECT d.purchase_order_num, d.product_num, p.product_name, d.quantity, d.unit_price
+        FROM purchase_order_detail d
+        JOIN product p ON d.product_num = p.product_num
+        WHERE d.purchase_order_num = #{purchase_order_num}
+    </select>
+
+    <update id="updatePurchaseOrderDetail" parameterType="kr.spring.purchase.vo.PurchaseOrderDetailVO">
+        UPDATE purchase_order_detail
+        SET quantity = #{quantity},
+            unit_price = #{unit_price}
+        WHERE purchase_order_num = #{purchase_order_num} AND product_num = #{product_num}
+    </update>
+
+    <delete id="deletePurchaseOrderDetail" parameterType="long">
+        DELETE FROM purchase_order_detail WHERE purchase_order_num = #{purchase_order_num}
+    </delete>
+
+    <select id="getMonthlyPurchaseStats" resultType="java.util.Map">
+        SELECT
+            TO_CHAR(order_date, 'YYYY-MM') AS "month",
+            SUM(total_price) AS "total"
+        FROM purchase_order
+        WHERE EXTRACT(YEAR FROM order_date) = EXTRACT(YEAR FROM SYSDATE)
+        GROUP BY TO_CHAR(order_date, 'YYYY-MM')
+        ORDER BY "month" ASC
+    </select>
+
+</mapper> 

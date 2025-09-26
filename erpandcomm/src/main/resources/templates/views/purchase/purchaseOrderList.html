@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout_basic}">
+<head>
+    <meta charset="UTF-8">
+    <title>구매주문 목록</title>
+    <script type="text/javascript" src="/assets/js/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" th:href="@{/assets/css/main.css?v=20240710}">
+    <link rel="stylesheet" th:href="@{/assets/css/sh.css?v=20240710}">
+    <th:block th:if="${orderSuccess}">
+      <script>alert('주문이 처리되었습니다!');</script>
+    </th:block>
+    <th:block th:if="${error}">
+      <script>alert('[[${error}]]');</script>
+    </th:block>
+
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+    <div class="dashboard-wrapper">
+        <th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+        <main class="main-content">
+            <div class="page-header">
+                <h2 class="page-title">구매주문(발주) 관리</h2>
+                <div>
+                    <span class="total-count">총 <strong th:text="${list.size()}">0</strong>개 주문</span>
+                </div>
+            </div>
+
+            <div class="dashboard-flex-row" style="display: flex; gap: 32px; margin-bottom: 24px; padding-left:80px;">
+                <div class="card" style="padding: 24px 24px 16px 24px; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); flex:1 1 0; min-width:340px; max-width:600px;">
+                    <form class="search-form" th:action="@{/purchase/orderList}" method="get" style="position:relative; padding-bottom: 60px;">
+                        <button type="submit" class="search-btn" style="position:absolute; right:12px; bottom:12px; z-index:2; min-width:90px;">전체 검색</button>
+                        <div class="search-row">
+                            <label class="search-label">주문 번호</label>
+                            <div class="search-input-wrapper">
+                                <input type="text" name="orderNum" th:value="${param.orderNum}" placeholder="주문번호" class="search-input">
+                                <button type="button" class="btn-individual-search" onclick="singleSearch('orderNum')">
+                                    <img src="/assets/images/search.png" alt="검색">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-row">
+                            <label class="search-label">공급처</label>
+                            <div class="search-input-wrapper">
+                                <input type="text" name="supplier" th:value="${param.supplier}" placeholder="공급처명" class="search-input">
+                                <button type="button" class="btn-individual-search" onclick="singleSearch('supplier')">
+                                    <img src="/assets/images/search.png" alt="검색">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-row">
+                            <label class="search-label">담당 직원</label>
+                            <div class="search-input-wrapper">
+                                <input type="text" name="emp" th:value="${param.emp}" placeholder="직원명" class="search-input">
+                                <button type="button" class="btn-individual-search" onclick="singleSearch('emp')">
+                                    <img src="/assets/images/search.png" alt="검색">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-row">
+                            <label class="search-label">주문일</label>
+                            <div class="search-input-wrapper">
+                                <input type="date" name="startDate" th:value="${param.startDate}" class="search-input search-date">
+                                <span style="color:#888; padding: 0 4px;">~</span>
+                                <input type="date" name="endDate" th:value="${param.endDate}" class="search-input search-date">
+                                <button type="button" class="btn-individual-search" onclick="singleDateSearch()">
+                                    <img src="/assets/images/search.png" alt="검색">
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="card" style="padding: 24px 24px 16px 24px; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); flex:1 1 0; min-width:340px; max-width:600px; min-height:300px; display:flex; align-items:center; justify-content:center;">
+                    <canvas id="purchaseMonthlyChart" width="400" height="200" style="display:block;"></canvas>
+                </div>
+            </div>
+            <section style="width:100%; max-width:1200px; margin:0; padding-left:80px;">
+                <div class="list-header" style="width:100%; display:flex; align-items:center; justify-content:space-between; margin: 0 0 12px 0; padding: 0 0 0 8px;">
+                    <span class="list-title" style="color: #3b6fd6; text-align:left;">구매주문(발주) 목록</span>
+                    <div style="display: flex; gap: 12px;">
+                        <a th:href="@{/purchase/orderForm}" class="btn btn-primary">
+                            <img src="/assets/images/write.png" alt="작성" style="width:20px; height:20px; margin-right:4px; vertical-align:middle;"> 주문 작성
+                        </a>
+                        <button type="button" onclick="downloadExcel()" class="btn-excel">
+                            <img src="/assets/images/excel.png" alt="Excel"> Excel 다운로드
+                        </button>
+                    </div>
+                </div>
+                <div class="card" style="width:100%; max-width:1200px; margin:0; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 0 0 24px 0;">
+                    <div class="table-container" style="width:100%; max-width:1200px; margin:0;">
+                        <table class="compact-table" style="width:100%; table-layout:fixed; border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%"><input type="checkbox" /></th>
+                                    <th style="width:8%">주문 번호</th>
+                                    <th style="width:15%">고객명(거래처)</th>
+                                    <th style="width:12%">주문일</th>
+                                    <th style="width:12%">주문 금액</th>
+                                    <th style="width:8%">담당 직원</th>
+                                    <th style="width:15%">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="order : ${list}">
+                                    <td><input type="checkbox" th:value="${order.purchase_order_num}" /></td>
+                                    <td th:text="${order.purchase_order_num}"></td>
+                                    <td th:text="${order.supplier_name}"></td>
+                                    <td th:text="${#dates.format(order.order_date, 'yyyy-MM-dd')}"></td>
+                                    <td th:text="${#numbers.formatInteger(order.total_price, 0, 'COMMA')} + '원'"></td>
+                                    <td th:text="${order.emp_name}"></td>
+                                    <td>
+                                        <a th:href="@{/purchase/orderDetail(purchase_order_num=${order.purchase_order_num})}" class="btn-detail">상세보기</a>
+                                        <a th:href="@{/purchase/orderEdit(purchase_order_num=${order.purchase_order_num})}" class="btn-detail" style="background:#2ecc71; margin-right:2px; color:#fff;">수정</a>
+                                        <a th:href="@{/purchase/orderDelete(purchase_order_num=${order.purchase_order_num})}" class="btn-detail" style="background:#e74c3c; margin-left:2px; color:#fff;">삭제</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination" th:if="${page != null}">
+                        <a th:each="i : ${#numbers.sequence(1, page.totalPages)}"
+                           th:href="@{/purchase/orderList(page=${i}, startDate=${param.startDate}, endDate=${param.endDate}, supplier=${param.supplier}, emp=${param.emp})}"
+                           th:text="${i}"
+                           th:classappend="${i == page.number + 1} ? 'active'">
+                        </a>
+                    </div>
+                </div>
+            </section>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('purchaseMonthlyChart');
+            if (!canvas) {
+                console.error('Canvas element with ID "purchaseMonthlyChart" not found.');
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+
+            const drawTextMessage = (message) => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px "Pretendard", sans-serif';
+                ctx.fillStyle = '#888';
+                ctx.textAlign = 'center';
+                ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+            };
+
+            fetch('/purchase/stats/monthly')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || data.length === 0) {
+                        drawTextMessage('표시할 데이터가 없습니다.');
+                        return;
+                    }
+
+                    const labels = data.map(item => {
+                      const m = (item.MONTH || item.month);
+                      if (m.includes('-')) return parseInt(m.split('-')[1], 10) + '월';
+                      return m.length === 1 ? m + '월' : (m.replace(/^0/, '') + '월');
+                    });
+                    const totals = data.map(item => item.TOTAL || item.total);
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '월별 구매금액',
+                                data: totals,
+                                backgroundColor: [
+                                  '#B3C6FF', '#A3BFFA', '#7EA6F7', '#5B8DEE', '#3A6ED8', '#2C5CC5', '#1E47A2', '#1450B8', '#1C7ED6', '#228BE6', '#339AF0', '#4DABF7'
+                                ],
+                                barThickness: 48,
+                                categoryPercentage: 0.7,
+                                barPercentage: 1.0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, position: 'top', align: 'end' }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { display: true }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        display: false,
+                                        callback: function(value) {
+                                            return value.toLocaleString() + '원';
+                                        }
+                                    },
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching or parsing chart data:', error);
+                    drawTextMessage('차트 데이터를 가져오지 못했습니다.');
+                });
+        });
+        </script>
+    </main>
+</div>
+</div>
+<div layout:fragment="pageScript">
+<script type="text/javascript">
+function downloadExcel() {
+    var orderNum = $('input[name="orderNum"]').val();
+    var client = $('input[name="client"]').val();
+    var emp = $('input[name="emp"]').val();
+    var startDate = $('input[name="startDate"]').val();
+    var endDate = $('input[name="endDate"]').val();
+    var url = 'excel?';
+    if(orderNum) url += 'orderNum=' + encodeURIComponent(orderNum) + '&';
+    if(client) url += 'client=' + encodeURIComponent(client) + '&';
+    if(emp) url += 'emp=' + encodeURIComponent(emp) + '&';
+    if(startDate) url += 'startDate=' + encodeURIComponent(startDate) + '&';
+    if(endDate) url += 'endDate=' + encodeURIComponent(endDate) + '&';
+    window.open(url, '_blank');
+}
+</script>
+</div>
+<script>
+function singleSearch(field) {
+  const form = document.createElement('form');
+  form.method = 'get';
+  form.action = window.location.pathname;
+  const value = document.querySelector(`[name="${field}"]`).value;
+  if (value) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = field;
+    input.value = value;
+    form.appendChild(input);
+    document.body.appendChild(form);
+    form.submit();
+  } else {
+    alert('검색어를 입력하세요.');
+  }
+}
+function singleDateSearch() {
+  const start = document.querySelector('[name="startDate"]').value;
+  const end = document.querySelector('[name="endDate"]').value;
+  if (!start && !end) {
+    alert('날짜를 입력하세요.');
+    return;
+  }
+  const form = document.createElement('form');
+  form.method = 'get';
+  form.action = window.location.pathname;
+  if (start) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'startDate';
+    input.value = start;
+    form.appendChild(input);
+  }
+  if (end) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'endDate';
+    input.value = end;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout_basic}">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 목록</title>
+    <link rel="stylesheet" th:href="@{/assets/css/yn/product.css}">
+    <script type="text/javascript" th:src="@{/assets/js/jquery-3.7.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/assets/js/product.js}"></script>
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}">
+</head>
+<body>
+<div layout:fragment="content" class="page-main">
+    <div class="dashboard-wrapper">
+		<!-- 사이드바 -->
+		<th:block th:replace="fragments/nav_sidebar :: sidebar"></th:block>
+	<main class="main-content">
+    <div class="page-header">
+        <h2 class="page-title">상품 관리</h2>
+        <div>
+            <span class="total-count">총 <strong th:text="${count}">0</strong>개 상품</span>
+        </div>
+    </div>
+    
+	<div class="category-nav">
+	    <span th:each="category : ${categoryList}">[[${category['category_name']}]]</span>
+	</div>
+	<div class="category-nav">
+	    <a href="productView" th:classappend="${category_num == null or category_num == ''} ? 'active' : ''">전체</a>
+	    <a th:each="category : ${categoryList}"
+	       th:href="@{/product/productView(category_num=${category['CATEGORY_NUM']})}"
+	       th:classappend="${category_num != null and category_num == category['CATEGORY_NUM']} ? 'active' : ''"
+	       th:text="${category['CATEGORY_NAME']}">카테고리명</a>
+	</div>
+    
+    <!-- 검색 섹션 -->
+    <div class="search-section">
+        <form action="productView" id="search_form" method="get" class="search-form">
+            <input type="hidden" name="category_num" th:value="${category_num}">
+            
+            <div class="search-group">
+                <label for="keyfield">검색 유형:</label>
+                <select name="keyfield" id="keyfield">
+                    <option value="">선택</option>
+                    <option value="1" th:selected="${keyfield=='1'}">상품명</option>
+                    <option value="2" th:selected="${keyfield=='2'}">상품번호</option>
+                    <option value="3" th:selected="${keyfield=='3'}">카테고리</option>
+                </select>
+            </div>
+            
+            <div class="search-group">
+                <input type="search" name="keyword" id="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요">
+            </div>
+            
+            <div class="search-group">
+                <label for="min_price">가격범위:</label>
+                <div class="price-range">
+                    <input type="number" name="min_price" id="min_price" th:value="${min_price}" placeholder="최소">
+                    <span>~</span>
+                    <input type="number" name="max_price" id="max_price" th:value="${max_price}" placeholder="최대">
+                    <span>원</span>
+                </div>
+            </div>
+            
+            <div class="search-group">
+                <input type="submit" value="검색" class="btn btn-primary">
+                <input type="button" value="초기화" onclick="location.href='productView'" class="btn">
+            </div>
+        </form>
+    </div>
+    
+    <!-- 컨트롤 섹션 -->
+    <div class="controls-section">
+        <div class="search-group">
+            <label for="order">정렬:</label>
+            <select name="order" id="order" th:value="${order}">
+                <option value="1" th:selected="${order==1}">상품번호순</option>
+                <option value="2" th:selected="${order==2}">상품명순</option>
+                <option value="3" th:selected="${order==3}">가격낮은순</option>
+                <option value="4" th:selected="${order==4}">가격높은순</option>
+                <option value="5" th:selected="${order==5}">카테고리순</option>
+            </select>
+        </div>
+        
+        <div>
+            <input type="button" value="상품 추가" 
+                   onclick="location.href='register'" class="btn btn-success">
+            <input type="button" value="Excel 다운로드" 
+                   onclick="downloadExcel()" class="btn">
+        </div>
+    </div>
+    
+    <!-- 결과 표시 -->
+    <div class="no-results" th:if="${count == 0}">
+        검색 조건에 맞는 상품이 없습니다.
+    </div>
+    
+    <!-- 상품 테이블 -->
+    <th:block th:if="${count > 0}">
+        <div class="table-container">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th width="100">상품번호</th>
+                        <th width="300">상품명</th>
+                        <th width="120">카테고리</th>
+                        <th width="120">단가</th>
+                        <th width="80">단위</th>
+                        <th width="100">상태</th>
+                        <th width="100">관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="product : ${list}">
+                        <td class="align-center" th:text="${product.product_num}">1</td>
+                        <td class="align-left">
+                            <a th:href="@{/product/detail(product_num=${product.product_num})}" 
+                               class="product-name" th:text="${product.product_name}">상품명</a>
+                        </td>
+                        <td class="align-center" th:text="${product.category_name}">카테고리</td>
+                        <td class="align-right">
+                            <span class="price" th:text="${#numbers.formatDecimal(product.unit_price, 0, 'COMMA', 2, 'POINT')} + '원'">10,000.00원</span>
+                        </td>
+                        <td class="align-center" th:text="${product.unit}">개</td>
+                        <td class="align-center">
+                            <span th:class="'status-badge ' + (${product.status == 1} ? 'status-active' : 'status-inactive')"
+                                  th:text="${product.status == 1} ? '판매중' : '판매중지'">판매중</span>
+                        </td>
+                        <td class="align-center">
+                            <a th:href="@{/product/edit(product_num=${product.product_num})}" 
+                               class="btn" style="font-size: 12px; padding: 4px 8px;"
+                               sec:authorize="hasRole('ADMIN')">수정</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 페이지네이션 -->
+        <div class="pagination" th:utext="${page}">
+        </div>
+        </main>
+    </div>
+</div>
+<div layout:fragment="pageScript">
+<script type="text/javascript">
+$(function(){
+    // 정렬 변경 시 자동 검색
+    $('#order').change(function(){
+        var category_num = '[[${category_num}]]' || '';
+        var keyfield = $('#keyfield').val();
+        var keyword = $('#keyword').val();
+        var min_price = $('#min_price').val();
+        var max_price = $('#max_price').val();
+        var order = $('#order').val();
+        
+        var url = 'productView?';
+        if(category_num) url += 'category_num=' + category_num + '&';
+        if(keyfield) url += 'keyfield=' + keyfield + '&';
+        if(keyword) url += 'keyword=' + encodeURIComponent(keyword) + '&';
+        if(min_price) url += 'min_price=' + min_price + '&';
+        if(max_price) url += 'max_price=' + max_price + '&';
+        url += 'order=' + order;
+        
+        location.href = url;
+    });
+    
+    // 검색 폼 제출 시 현재 정렬 유지
+    $('#search_form').submit(function(){
+        var orderValue = $('#order').val();
+        if(orderValue) {
+            $(this).append('<input type="hidden" name="order" value="' + orderValue + '">');
+        }
+    });
+});
+
+// Excel 다운로드 함수
+function downloadExcel() {
+    var category_num = '[[${category_num}]]' || '';
+    var keyfield = $('#keyfield').val();
+    var keyword = $('#keyword').val();
+    var min_price = $('#min_price').val();
+    var max_price = $('#max_price').val();
+    var order = $('#order').val();
+    
+    var url = 'excel?';
+    if(category_num) url += 'category_num=' + category_num + '&';
+    if(keyfield) url += 'keyfield=' + keyfield + '&';
+    if(keyword) url += 'keyword=' + encodeURIComponent(keyword) + '&';
+    if(min_price) url += 'min_price=' + min_price + '&';
+    if(max_price) url += 'max_price=' + max_price + '&';
+    url += 'order=' + order;
+    
+    window.open(url, '_blank');
+}
+</script>
+</div>
+</body>
+</html>

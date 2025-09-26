@@ -1,0 +1,67 @@
+spring: 
+  config:
+    import: data-config.yml
+
+  thymeleaf:
+    prefix: classpath:templates/
+    suffix: .html
+    check-template-location: true
+    mode: HTML5
+    cache: false #캐시를 사용하지 않음
+      
+  datasource: #DB 접속
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${dataconfig.db-url}
+    username: ${dataconfig.db-username}
+    password: ${dataconfig.db-password}
+    hikari: #커넥션풀 
+      connection-timeout: 10000 #10초로 단축
+      maximum-pool-size: 20 #커넥션 풀 크기 증가
+      minimum-idle: 5 #최소 유휴 커넥션
+      max-lifetime: 600000 #10분으로 단축
+      idle-timeout: 300000 #5분 유휴 타임아웃
+      leak-detection-threshold: 60000 #누수 감지 1분
+      connection-test-query: SELECT 1 FROM dual #연결 테스트 쿼리
+      
+  messages: #메시지
+    basename: messages.member,messages.sh,messages.yn,messages.jm,messages.yj,messages.hs
+    encoding: UTF-8
+    
+  devtools: #정적 자원(html, css, js) 수정 시 새로고침 없이 바로 적용
+    livereload: 
+      enabled: true
+    
+    restart: #컨트롤러, 모델단이 바뀌었을 때 프로젝트 재시작 설정 (정확히는 classpath에 있는 모든 파일)
+      enabled: true
+      
+  servlet:
+    multipart:
+      max-file-size: 50MB #파일 한 개당 최대 사이즈
+      max-request-size: 50MB #요청당 최대 파일 크기
+
+mybatis: #mybatis 설정
+  type-aliases-package: kr.spring.**.vo
+  mapper-locations: kr/spring/**/dao/*.xml
+  
+logging: #로그 지정
+  level:
+    root: error
+    '[kr.spring]': debug
+    '[com.zaxxer.hikari]': debug #Hikari 로그 추가
+    org:
+      spring:
+        security: info
+    
+server:
+  port: 8080
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  #tomcat:
+    #max-http-form-post-size: 50MB #톰캣에서 허용하는 파일 업로드 사이즈(multipart 용량 지정을 해도 톰캣 영역에서 용량 제한이 되기 때문에 설정 필요)
+    #max-swallow-size: 50MB #명시하지 않으면 ERR_CONNECTION_RESET 오류 발생
+
+
